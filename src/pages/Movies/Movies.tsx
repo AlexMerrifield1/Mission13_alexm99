@@ -1,25 +1,22 @@
 import { table } from 'console';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import data from '../../MovieData.json';
 import styles from './Movies.module.css';
+import { Movie } from '../types/movie';
 
 const MDS = data.MovieData;
 
 function MovieList() {
-  const [listOMovies, setListOMovies] = useState(MDS);
+  const [listOMovies, setListOMovies] = useState<Movie[]>([]);
 
-  const addMovie = () => {
-    setListOMovies([
-      ...MDS,
-      {
-        Category: 'Action/Adventure',
-        Title: 'Batman Returns',
-        Year: 1992,
-        Director: 'Tim Burton',
-        Rating: 'PG-13',
-      },
-    ]);
-  };
+  useEffect(() => {
+    const fetchMovie = async () => {
+      const rsp = await fetch('https://localhost:4000/movie');
+      const temp = await rsp.json();
+      setListOMovies(temp);
+    };
+    fetchMovie();
+  }, []);
 
   return (
     <>
@@ -41,23 +38,26 @@ function MovieList() {
           </thead>
 
           <tbody>
-            {listOMovies.map((m) => (
-              <tr className={styles.mytablerow}>
-                <td>{m.Title}</td>
-                <td>{m.Year}</td>
-                <td>{m.Director}</td>
-                <td>{m.Rating}</td>
-                <td>{m.Category}</td>
-                <td>{m.Edited ? 'Yes' : 'No'}</td>
-              </tr>
-            ))}
+            {listOMovies
+              .filter((m) => m.edited === 'Yes')
+              .sort((a, b) => a.title.localeCompare(b.title))
+              .map((m) => (
+                <tr className={styles.mytablerow} key={m.movieId}>
+                  <td>{m.title}</td>
+                  <td>{m.year}</td>
+                  <td>{m.director}</td>
+                  <td>{m.rating}</td>
+                  <td>{m.category}</td>
+                  <td>{m.edited ? 'Yes' : 'No'}</td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>
 
-      <button className="btn btn-primary" onClick={addMovie}>
+      {/* <button className="btn btn-primary" onClick={addMovie}>
         Add Movie
-      </button>
+      </button> */}
     </>
   );
 }
